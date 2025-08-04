@@ -1,0 +1,45 @@
+<%- include('partials/header') %>
+
+<div class="admin-container">
+    <h1>Admin Dashboard</h1>
+    <p>Here you can manage all item listings on the portal.</p>
+
+    <div class="item-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Posted By</th>
+                    <th>Status</th>
+                    <th>Claimed By</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (items.length > 0) { %>
+                    <% items.forEach(item => { %>
+                        <tr>
+                            <td><%= item.name %></td>
+                            <td><span class="item-category <%= item.category %>"><%= item.category %></span></td>
+                            <td><%= item.poster_name %></td>
+                            <td><%= item.is_claimed ? 'Claimed' : 'Available' %></td>
+                            <td><%= item.claimer_name || 'N/A' %></td>
+                            <td>
+                                <form method="POST" action="/admin/items/<%= item.id %>/delete" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                    <button type="submit" class="btn-delete">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6">No items have been posted yet.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

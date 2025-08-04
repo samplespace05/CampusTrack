@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - NITW Lost & Found</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/home" class="logo">
+                <img src="/img/logo.png" alt="MNIT Logo" class="logo-img">
+                NITW Lost & Found
+            </a>
+            <ul>
+                <% if (user) { %>
+                    <li><a href="/home">Home</a></li>
+                    <li><a href="/items">Browse Items</a></li>
+                    <% if (user.role === 'admin') { %>
+                        <li><a href="/admin">Admin</a></li>
+                    <% } %>
+                    <li><a href="/logout">Logout (<%= user.name %>)</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/register">Register</a></li>
+                <% } %>
+            </ul>
+        </nav>
+    </header>
+    <main>

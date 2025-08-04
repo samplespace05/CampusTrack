@@ -1,0 +1,146 @@
+<%- include('partials/header') %>
+
+<div class="items-container">
+    <h1>Browse Lost & Found Items</h1>
+
+    <div class="filter-container">
+        <form method="GET" action="/items">
+            <input type="text" name="search" placeholder="Search by keyword..." value="<%= search %>">
+            <select name="category">
+                <option value="">All Categories</option>
+                <option value="lost" <%= category === 'lost' ? 'selected' : '' %>>Lost</option>
+                <option value="found" <%= category === 'found' ? 'selected' : '' %>>Found</option>
+            </select>
+            <button type="submit" class="btn">Filter</button>
+            <a href="/items" class="btn-secondary">Clear</a>
+        </form>
+    </div>
+
+    <div class="items-grid">
+        <% if (items.length > 0) { %>
+            <% items.forEach(item => { %>
+                <div class="item-card" data-item-id="<%= item.id %>">
+                    <img src="<%= item.image_url || 'https://placehold.co/300x200/eee/ccc?text=No+Image' %>" alt="<%= item.name %>">
+                    <div class="item-card-content">
+                        <h3><%= item.name %></h3>
+                        <span class="item-category <%= item.category %>"><%= item.category %></span>
+                        <p><%= item.description.substring(0, 100) %><% if (item.description.length > 100) { %>...<% } %></p>
+                        <small>Location: <%= item.location %></small>
+                        <small>Posted by: <%= item.poster_name %> on <%= new Date(item.date_posted).toLocaleDateString() %></small>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p>No items found matching your criteria.</p>
+        <% } %>
+    </div>
+
+    <% if (totalPages > 1) { %>
+        <div class="pagination">
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <a href="/items?page=<%= i %>&search=<%= search %>&category=<%= category %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+        </div>
+    <% } %>
+</div>
+
+<!-- Modal Structure -->
+<div id="itemModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <div id="modal-body">
+            <!-- Item details will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('itemModal');
+    const modalBody = document.getElementById('modal-body');
+    const closeButton = document.querySelector('.close-button');
+
+    document.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', async () => {
+            const itemId = card.dataset.itemId;
+            try {
+                const response = await fetch(`/items/${itemId}`);
+                if (!response.ok) throw new Error('Failed to fetch item details.');
+                
+                const item = await response.json();
+                const currentUserId = <%- user ? user.id : null %>;
+
+                let actionForm = '';
+                if (item.user_id !== currentUserId) {
+                    if (item.category === 'found') {
+                        actionForm = `
+                            <form method="POST" action="/items/${item.id}/claim">
+                                <p>Please provide your phone number so the owner can contact you.</p>
+                                <div class="form-group">
+                                    <label for="finder_phone">Your Phone Number:</label>
+                                    <input type="tel" name="finder_phone" required>
+                                </div>
+                                <button type="submit" class="btn-claim">Claim This Item</button>
+                            </form>
+                        `;
+                    } else { // category is 'lost'
+                        actionForm = `
+                             <form method="POST" action="/items/${item.id}/claim">
+                                <p>Please provide your phone number so the owner can contact you.</p>
+                                <div class="form-group">
+                                    <label for="finder_phone">Your Phone Number:</label>
+                                    <input type="tel" name="finder_phone" required>
+                                </div>
+                                <button type="submit" class="btn-claim">I Found This!</button>
+                            </form>
+                        `;
+                    }
+                } else {
+                    actionForm = '<p class="your-item">This is your listing.</p>';
+                }
+
+                let custodyInfo = '';
+                if(item.category === 'found' && item.custody_status === 'with_guard') {
+                    custodyInfo = `
+                        <div class="custody-info">
+                            <h4>Custody Information</h4>
+                            <p>This item was submitted to security.</p>
+                            <p><strong>Guard Name:</strong> ${item.guard_name || 'N/A'}</p>
+                            <p><strong>Guard Phone:</strong> ${item.guard_phone || 'N/A'}</p>
+                        </div>
+                    `;
+                }
+
+                modalBody.innerHTML = `
+                    <h2>${item.name}</h2>
+                    <img src="${item.image_url || 'https://placehold.co/400x300/eee/ccc?text=No+Image'}" alt="${item.name}" class="modal-img">
+                    <p><strong>Description:</strong> ${item.description}</p>
+                    <p><strong>Location:</strong> ${item.location}</p>
+                    <p><strong>Posted By:</strong> ${item.poster_name}</p>
+                    <p><strong>Date Posted:</strong> ${new Date(item.date_posted).toLocaleDateString()}</p>
+                    ${custodyInfo}
+                    <div class="action-form">
+                        ${actionForm}
+                    </div>
+                `;
+                modal.style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('Could not load item details.');
+            }
+        });
+    });
+
+    closeButton.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    window.onclick = (event) => {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+});
+</script>
+
+<%- include('partials/footer') %>

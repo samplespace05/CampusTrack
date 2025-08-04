@@ -1,0 +1,21 @@
+<%- include('partials/header') %>
+
+<div class="home-container">
+    <h1>Welcome, <%= user.name %>!</h1>
+    <p>What would you like to do today?</p>
+    <div class="home-cards">
+        <a href="/items/new?category=lost" class="card lost-card">
+            <h2><i class="fas fa-search"></i> Report a Lost Item</h2>
+            <p>Click here to create a listing for an item you have misplaced.</p>
+        </a>
+        <a href="/items/new?category=found" class="card found-card">
+            <h2><i class="fas fa-hand-holding-heart"></i> Report a Found Item</h2>
+            <p>Click here to help an item find its way back to its owner.</p>
+        </a>
+    </div>
+    <div class="browse-link">
+        <a href="/items" class="btn">Or Browse All Items</a>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
